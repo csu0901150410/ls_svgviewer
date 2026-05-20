@@ -1,0 +1,42 @@
+# 忽略构建目录
+build/
+
+# 忽略 CMake 生成的临时文件和缓存
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# 忽略编译产生的中间文件和可执行文件
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+*.pdb
+*.idb
+*.ilk
+
+# 忽略 IDE 配置文件 (根据你使用的编辑器选择取消注释)
+
+# Visual Studio
+.vs/
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.user
+
+# VS Code
+.vscode/
+
+# CLion / JetBrains
+.idea/
+*.iml
+
+# Windows 系统文件
+Thumbs.db
+desktop.ini
+
+# macOS 系统文件
+.DS_Store
