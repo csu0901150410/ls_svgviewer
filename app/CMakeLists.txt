@@ -6,6 +6,7 @@ target_sources(${PROJECT_NAME}
         main.cpp
 )
 
+# app隐式链接core.dll
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         core
