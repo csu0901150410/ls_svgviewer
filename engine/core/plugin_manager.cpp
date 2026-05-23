@@ -9,6 +9,12 @@ typedef core::plugin* (*create_plugin_func)();
 
 namespace core
 {
+    plugin_manager& plugin_manager::instance()
+    {
+        static plugin_manager uniqueInstance;
+        return uniqueInstance;
+    }
+
     plugin_manager::~plugin_manager()
     {
         for (auto& entry : plugins)

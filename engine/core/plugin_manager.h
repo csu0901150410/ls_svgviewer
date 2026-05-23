@@ -12,9 +12,16 @@ namespace core
     class CORE_API plugin_manager
     {
     public:
+        static plugin_manager& instance();
+
         bool load_plugin(const char* path);
 
         ~plugin_manager();
+
+    private:
+        plugin_manager() = default;
+        plugin_manager(const plugin_manager&);
+        plugin_manager& operator=(const plugin_manager&);
 
     private:
         struct plugin_entry

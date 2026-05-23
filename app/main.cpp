@@ -9,7 +9,7 @@ int main()
 
     core::logger::info("Hello, World!");
 
-    core::plugin_manager manager;
+    auto& manager = core::plugin_manager::instance();
     manager.load_plugin("plugins/hello_plugin.dll");
 
     return 0;
