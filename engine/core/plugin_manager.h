@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include <memory>
 #include <vector>
 
 #include "core_api.h"
@@ -20,14 +19,15 @@ namespace core
 
     private:
         plugin_manager() = default;
-        plugin_manager(const plugin_manager&);
-        plugin_manager& operator=(const plugin_manager&);
+        plugin_manager(const plugin_manager&) = delete;
+        plugin_manager& operator=(const plugin_manager&) = delete;
 
     private:
         struct plugin_entry
         {
             shared_library library;
             plugin* instance;
+            void (*destroy)(plugin*);
         };
 
         std::vector<plugin_entry> plugins;

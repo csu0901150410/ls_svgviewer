@@ -1,0 +1,6 @@
+# Changelog
+
+## 2026-05-23-00
+- shared_library 支持移动语义，析构时自动卸载动态库
+- 插件导出销毁接口 destroy_plugin，插件管理器卸载插件时由插件内部释放对象
+- 路径定位改用 std::filesystem 同时C++标准改为C++17

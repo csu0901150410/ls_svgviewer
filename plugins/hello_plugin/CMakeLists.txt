@@ -1,4 +1,4 @@
-add_library(hello_plugin SHARED)
+﻿add_library(hello_plugin SHARED)
 
 target_sources(hello_plugin
     PRIVATE

@@ -1,4 +1,4 @@
-add_library(core SHARED)
+﻿add_library(core SHARED)
 
 target_sources(core
     PRIVATE

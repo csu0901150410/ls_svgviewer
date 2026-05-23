@@ -1,5 +1,5 @@
-﻿#include "plugin.h"
-#include "logger.h"
+#include "plugin.h"
+#include "plugin_api.h"
 
 class hello_plugin : public core::plugin
 {
@@ -10,11 +10,15 @@ public:
     }
 };
 
-// 导出工厂函数
 extern "C"
 {
-    __declspec(dllexport) core::plugin* create_plugin()
+    PLUGIN_API core::plugin* create_plugin()
     {
         return new hello_plugin();
+    }
+
+    PLUGIN_API void destroy_plugin(core::plugin* plugin)
+    {
+        delete plugin;
     }
 }

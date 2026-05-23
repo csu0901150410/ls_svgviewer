@@ -6,6 +6,7 @@
 
 // 定义工厂函数指针类型
 typedef core::plugin* (*create_plugin_func)();
+typedef void (*destroy_plugin_func)(core::plugin*);
 
 namespace core
 {
@@ -17,10 +18,11 @@ namespace core
 
     plugin_manager::~plugin_manager()
     {
+        // 析构时调用动态库中的销毁函数销毁插件对象
         for (auto& entry : plugins)
         {
-            delete entry.instance;
-            entry.library.unload();
+            if (entry.destroy && entry.instance)
+                entry.destroy(entry.instance);
         }
         plugins.clear();
     }
@@ -42,8 +44,14 @@ namespace core
         auto createPlugin = (create_plugin_func)lib.get_symbol("create_plugin");
         if (!createPlugin)
         {
-            lib.unload();
             std::cerr << "Failed to find symbol 'create_plugin' in: " << path << std::endl;
+            return false;
+        }
+
+        auto destroyPlugin = (destroy_plugin_func)lib.get_symbol("destroy_plugin");
+        if (!destroyPlugin)
+        {
+            std::cerr << "Failed to find symbol 'destroy_plugin' in: " << path << std::endl;
             return false;
         }
 
@@ -51,15 +59,14 @@ namespace core
         plugin* pluginInstance = createPlugin();
         if (!pluginInstance)
         {
-            lib.unload();
             std::cerr << "Failed to create plugin instance from: " << path << std::endl;
             return false;
         }
 
         // store plugin instance
-        plugins.push_back({std::move(lib), pluginInstance});
+        plugins.push_back({std::move(lib), pluginInstance, destroyPlugin});
 
-        core::logger::info("Plugin loaded successfully");
+        std::cout << "Plugin loaded successfully: " << pluginInstance->name() << std::endl;
         return true;
     }
 
