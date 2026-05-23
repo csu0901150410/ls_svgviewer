@@ -3,10 +3,9 @@
 #include <memory>
 #include <vector>
 
-#include <windows.h>
-
 #include "core_api.h"
 #include "plugin.h"
+#include "platform.h"
 
 namespace core
 {
@@ -18,6 +17,12 @@ namespace core
         ~plugin_manager();
 
     private:
-        std::vector<plugin*> plugins;
+        struct plugin_entry
+        {
+            shared_library library;
+            plugin* instance;
+        };
+
+        std::vector<plugin_entry> plugins;
     };
 }

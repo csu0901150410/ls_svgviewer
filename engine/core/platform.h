@@ -1,5 +1,9 @@
 ﻿#pragma once
 
+/**
+ * 平台相关层，具体功能在各平台的实现
+ */
+
 namespace core
 {
     class shared_library

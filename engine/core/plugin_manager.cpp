@@ -1,6 +1,5 @@
 ﻿#include "plugin_manager.h"
 
-
 #include <iostream>
 
 #include "logger.h"
@@ -12,7 +11,12 @@ namespace core
 {
     plugin_manager::~plugin_manager()
     {
-        
+        for (auto& entry : plugins)
+        {
+            delete entry.instance;
+            entry.library.unload();
+        }
+        plugins.clear();
     }
 
     bool plugin_manager::load_plugin(const char* path)
@@ -21,23 +25,19 @@ namespace core
             return false;
 
         // load dynamic library
-        HMODULE hModule = LoadLibraryA(path);
-        if (!hModule)
+        shared_library lib;
+        if (!lib.load(path))
         {
-            DWORD error = GetLastError();
-            std::cerr << "Failed to load library: " << path 
-                      << ", Error Code: " << error << std::endl;
+            std::cerr << "Failed to load library: " << path << std::endl;
             return false;
         }
 
         // find create_plugin symbol
-        create_plugin_func createPlugin = (create_plugin_func)GetProcAddress(hModule, "create_plugin");
+        auto createPlugin = (create_plugin_func)lib.get_symbol("create_plugin");
         if (!createPlugin)
         {
-            DWORD error = GetLastError();
-            std::cerr << "Failed to find symbol 'create_plugin' in: " << path 
-                      << ", Error Code: " << error << std::endl;
-            FreeLibrary(hModule);
+            lib.unload();
+            std::cerr << "Failed to find symbol 'create_plugin' in: " << path << std::endl;
             return false;
         }
 
@@ -45,14 +45,15 @@ namespace core
         plugin* pluginInstance = createPlugin();
         if (!pluginInstance)
         {
+            lib.unload();
             std::cerr << "Failed to create plugin instance from: " << path << std::endl;
-            FreeLibrary(hModule);
             return false;
         }
 
         // store plugin instance
-        plugins.push_back(pluginInstance);
+        plugins.push_back({std::move(lib), pluginInstance});
 
+        core::logger::info("Plugin loaded successfully");
         return true;
     }
 

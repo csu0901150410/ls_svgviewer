@@ -4,6 +4,7 @@ target_sources(core
     PRIVATE
         logger.cpp
         plugin_manager.cpp
+        platform.cpp
 )
 
 target_include_directories(core
