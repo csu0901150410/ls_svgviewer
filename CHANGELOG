@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-05-24-02
+- 实现一版真实渲染后端 gid_renderer
+- 实现标准化输入系统，将鼠标事件转发到 view
+
 ## 2026-05-24-01
 - 增加 windowing 模块，提供自建窗口方便验证
 - graphics 增加 attach 接口

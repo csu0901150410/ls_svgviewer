@@ -2,12 +2,27 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <windowsx.h>
 #endif
 
 namespace
 {
 #ifdef _WIN32
     constexpr const char* window_class_name = "LsGraphicsSdkWindow";
+
+    graphics::key_modifiers current_modifiers()
+    {
+        return {
+            (GetKeyState(VK_CONTROL) & 0x8000) != 0,
+            (GetKeyState(VK_SHIFT) & 0x8000) != 0,
+            (GetKeyState(VK_MENU) & 0x8000) != 0};
+    }
+
+    void dispatch_input_event(windowing::sdk_window* window, const graphics::input_event& event)
+    {
+        if (window)
+            window->dispatch_input_event(event);
+    }
 
     LRESULT CALLBACK window_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
     {
@@ -26,6 +41,81 @@ namespace
             if (window)
                 window->close();
             return 0;
+        case WM_LBUTTONDOWN:
+        case WM_MBUTTONDOWN:
+        case WM_RBUTTONDOWN:
+        {
+            if (window)
+                SetCapture(hwnd);
+
+            graphics::input_event event;
+            event.type = graphics::input_event_type::mouse_down;
+            event.position = {static_cast<float>(GET_X_LPARAM(lparam)), static_cast<float>(GET_Y_LPARAM(lparam))};
+            event.modifiers = current_modifiers();
+            event.button = message == WM_LBUTTONDOWN
+                ? graphics::mouse_button::left
+                : message == WM_MBUTTONDOWN ? graphics::mouse_button::middle : graphics::mouse_button::right;
+            dispatch_input_event(window, event);
+            return 0;
+        }
+        case WM_LBUTTONUP:
+        case WM_MBUTTONUP:
+        case WM_RBUTTONUP:
+        {
+            ReleaseCapture();
+
+            graphics::input_event event;
+            event.type = graphics::input_event_type::mouse_up;
+            event.position = {static_cast<float>(GET_X_LPARAM(lparam)), static_cast<float>(GET_Y_LPARAM(lparam))};
+            event.modifiers = current_modifiers();
+            event.button = message == WM_LBUTTONUP
+                ? graphics::mouse_button::left
+                : message == WM_MBUTTONUP ? graphics::mouse_button::middle : graphics::mouse_button::right;
+            dispatch_input_event(window, event);
+            return 0;
+        }
+        case WM_MOUSEMOVE:
+        {
+            graphics::input_event event;
+            event.type = graphics::input_event_type::mouse_move;
+            event.position = {static_cast<float>(GET_X_LPARAM(lparam)), static_cast<float>(GET_Y_LPARAM(lparam))};
+            event.modifiers = current_modifiers();
+            dispatch_input_event(window, event);
+            return 0;
+        }
+        case WM_MOUSEWHEEL:
+        {
+            POINT point{GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam)};
+            ScreenToClient(hwnd, &point);
+
+            graphics::input_event event;
+            event.type = graphics::input_event_type::mouse_wheel;
+            event.position = {static_cast<float>(point.x), static_cast<float>(point.y)};
+            event.wheel_delta = static_cast<float>(GET_WHEEL_DELTA_WPARAM(wparam)) / static_cast<float>(WHEEL_DELTA);
+            event.modifiers = current_modifiers();
+            dispatch_input_event(window, event);
+            return 0;
+        }
+        case WM_KEYDOWN:
+        case WM_SYSKEYDOWN:
+        {
+            graphics::input_event event;
+            event.type = graphics::input_event_type::key_down;
+            event.key = static_cast<int>(wparam);
+            event.modifiers = current_modifiers();
+            dispatch_input_event(window, event);
+            return 0;
+        }
+        case WM_KEYUP:
+        case WM_SYSKEYUP:
+        {
+            graphics::input_event event;
+            event.type = graphics::input_event_type::key_up;
+            event.key = static_cast<int>(wparam);
+            event.modifiers = current_modifiers();
+            dispatch_input_event(window, event);
+            return 0;
+        }
         default:
             return DefWindowProc(hwnd, message, wparam, lparam);
         }
@@ -164,6 +254,18 @@ namespace windowing
             DispatchMessage(&message);
         }
 #endif
+    }
+
+    void sdk_window::set_input_event_callback(input_event_callback callback, void* userData)
+    {
+        inputCallback = callback;
+        inputUserData = userData;
+    }
+
+    void sdk_window::dispatch_input_event(const graphics::input_event& event)
+    {
+        if (inputCallback)
+            inputCallback(event, inputUserData);
     }
 
     bool sdk_window::should_close() const

@@ -1,12 +1,24 @@
-#include <iostream>
+#include <chrono>
 #include <memory>
+#include <thread>
 
-#include "debug_renderer.h"
+#include "gdi_renderer.h"
 #include "logger.h"
 #include "primitive.h"
 #include "render_target.h"
 #include "scene.h"
 #include "sdk_window.h"
+#include "view.h"
+
+namespace
+{
+    void forward_input_to_view(const graphics::input_event& event, void* userData)
+    {
+        auto* view = static_cast<graphics::view*>(userData);
+        if (view)
+            view->handle_event(event);
+    }
+}
 
 int main()
 {
@@ -19,6 +31,9 @@ int main()
         return 1;
     }
     window.show();
+
+    graphics::view view;
+    window.set_input_event_callback(forward_input_to_view, &view);
     window.poll_events();
 
     graphics::scene scene;
@@ -39,7 +54,7 @@ int main()
         graphics::fill_style{graphics::color::rgba(0.2f, 0.8f, 0.3f, 0.8f)},
         graphics::stroke_style{graphics::color::rgba(0.0f, 0.2f, 0.1f), 2.0f}));
 
-    graphics::debug_renderer renderer;
+    graphics::gdi_renderer renderer;
     const graphics::render_target_desc target{
         window.native_handle(),
         window.width(),
@@ -51,11 +66,16 @@ int main()
         return 1;
     }
 
-    renderer.begin_frame();
-    renderer.render(scene);
-    renderer.end_frame();
+    while (!window.should_close())
+    {
+        window.poll_events();
 
-    window.poll_events();
+        renderer.begin_frame();
+        renderer.render(scene);
+        renderer.end_frame();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(16));
+    }
 
     return 0;
 }
