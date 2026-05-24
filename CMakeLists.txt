@@ -16,6 +16,9 @@ add_subdirectory(engine/core)
 # graphics
 add_subdirectory(engine/graphics)
 
+# windowing
+add_subdirectory(engine/windowing)
+
 # plugins
 add_subdirectory(plugins/hello_plugin)
 

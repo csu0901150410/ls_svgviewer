@@ -8,8 +8,12 @@ namespace graphics
     class GRAPHICS_API debug_renderer final : public renderer
     {
     public:
+        bool attach(const render_target_desc& target) override;
         void begin_frame() override;
         void render(const scene& scene) override;
         void end_frame() override;
+
+    private:
+        render_target_desc target;
     };
 }

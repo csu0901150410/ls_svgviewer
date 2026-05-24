@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-05-24-01
+- 增加 windowing 模块，提供自建窗口方便验证
+- graphics 增加 attach 接口
+
 ## 2026-05-24-00
 - 增加 graphics 模块，跑通最小图元渲染闭环
 

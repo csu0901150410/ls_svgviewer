@@ -25,9 +25,21 @@ namespace
 
 namespace graphics
 {
+    bool debug_renderer::attach(const render_target_desc& target)
+    {
+        if (!target.window || target.width <= 0 || target.height <= 0)
+            return false;
+
+        this->target = target;
+        std::cout << "attach render target window=" << target.window
+                  << " width=" << target.width
+                  << " height=" << target.height << std::endl;
+        return true;
+    }
+
     void debug_renderer::begin_frame()
     {
-        std::cout << "begin frame" << std::endl;
+        std::cout << "begin frame target=(" << target.width << "x" << target.height << ")" << std::endl;
     }
 
     void debug_renderer::render(const scene& scene)

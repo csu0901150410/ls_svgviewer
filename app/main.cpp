@@ -4,11 +4,22 @@
 #include "debug_renderer.h"
 #include "logger.h"
 #include "primitive.h"
+#include "render_target.h"
 #include "scene.h"
+#include "sdk_window.h"
 
 int main()
 {
     core::logger::info("Graphics SDK demo started");
+
+    windowing::sdk_window window;
+    if (!window.create("Graphics SDK Demo", 800, 600))
+    {
+        core::logger::info("Failed to create SDK window");
+        return 1;
+    }
+    window.show();
+    window.poll_events();
 
     graphics::scene scene;
 
@@ -29,9 +40,22 @@ int main()
         graphics::stroke_style{graphics::color::rgba(0.0f, 0.2f, 0.1f), 2.0f}));
 
     graphics::debug_renderer renderer;
+    const graphics::render_target_desc target{
+        window.native_handle(),
+        window.width(),
+        window.height()};
+
+    if (!renderer.attach(target))
+    {
+        core::logger::info("Failed to attach render target");
+        return 1;
+    }
+
     renderer.begin_frame();
     renderer.render(scene);
     renderer.end_frame();
+
+    window.poll_events();
 
     return 0;
 }
