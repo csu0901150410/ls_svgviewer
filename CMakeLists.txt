@@ -13,6 +13,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 # core
 add_subdirectory(engine/core)
 
+# graphics
+add_subdirectory(engine/graphics)
+
 # plugins
 add_subdirectory(plugins/hello_plugin)
 

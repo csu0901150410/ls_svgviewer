@@ -1,28 +1,37 @@
-#include <filesystem>
 #include <iostream>
+#include <memory>
 
+#include "debug_renderer.h"
 #include "logger.h"
-#include "plugin_manager.h"
+#include "primitive.h"
+#include "scene.h"
 
-int main(int argc, char* argv[])
+int main()
 {
-    std::cout << "Hello, World!" << std::endl;
+    core::logger::info("Graphics SDK demo started");
 
-    core::logger::info("Hello, World!");
+    graphics::scene scene;
 
-    const auto executablePath = argc > 0
-        ? std::filesystem::absolute(argv[0])
-        : std::filesystem::current_path();
-    const auto executableDir = executablePath.parent_path();
+    scene.add(std::make_unique<graphics::line_primitive>(
+        graphics::point{10.0f, 10.0f},
+        graphics::point{160.0f, 90.0f},
+        graphics::stroke_style{graphics::color::rgba(0.9f, 0.1f, 0.1f), 2.0f}));
 
-#ifdef _WIN32
-    const auto pluginPath = executableDir / "plugins" / "hello_plugin.dll";
-#else
-    const auto pluginPath = executableDir / "plugins" / "libhello_plugin.so";
-#endif
+    scene.add(std::make_unique<graphics::rect_primitive>(
+        graphics::rect{30.0f, 40.0f, 120.0f, 80.0f},
+        graphics::fill_style{graphics::color::rgba(0.1f, 0.5f, 0.9f, 0.7f)},
+        graphics::stroke_style{graphics::color::rgba(0.0f, 0.0f, 0.0f), 1.5f}));
 
-    auto& manager = core::plugin_manager::instance();
-    manager.load_plugin(pluginPath.string().c_str());
+    scene.add(std::make_unique<graphics::ellipse_primitive>(
+        graphics::point{220.0f, 100.0f},
+        graphics::size{48.0f, 28.0f},
+        graphics::fill_style{graphics::color::rgba(0.2f, 0.8f, 0.3f, 0.8f)},
+        graphics::stroke_style{graphics::color::rgba(0.0f, 0.2f, 0.1f), 2.0f}));
+
+    graphics::debug_renderer renderer;
+    renderer.begin_frame();
+    renderer.render(scene);
+    renderer.end_frame();
 
     return 0;
 }
