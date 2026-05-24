@@ -1,81 +1,57 @@
-#include <chrono>
-#include <memory>
-#include <thread>
+#include <cairo.h>
 
-#include "gdi_renderer.h"
-#include "logger.h"
-#include "primitive.h"
-#include "render_target.h"
-#include "scene.h"
-#include "sdk_window.h"
-#include "view.h"
-
-namespace
-{
-    void forward_input_to_view(const graphics::input_event& event, void* userData)
-    {
-        auto* view = static_cast<graphics::view*>(userData);
-        if (view)
-            view->handle_event(event);
-    }
-}
+#include <iostream>
 
 int main()
 {
-    core::logger::info("Graphics SDK demo started");
+    constexpr int width = 640;
+    constexpr int height = 420;
+    const char* outputPath = "cairo_test.png";
 
-    windowing::sdk_window window;
-    if (!window.create("Graphics SDK Demo", 800, 600))
+    cairo_surface_t* surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+    cairo_t* cr = cairo_create(surface);
+
+    cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
+    cairo_paint(cr);
+
+    cairo_set_source_rgb(cr, 0.05, 0.07, 0.10);
+    cairo_rectangle(cr, 40.0, 40.0, 560.0, 340.0);
+    cairo_set_line_width(cr, 2.0);
+    cairo_stroke(cr);
+
+    cairo_set_source_rgb(cr, 0.12, 0.42, 0.84);
+    cairo_rectangle(cr, 90.0, 90.0, 180.0, 110.0);
+    cairo_fill(cr);
+
+    cairo_set_source_rgb(cr, 0.10, 0.62, 0.28);
+    cairo_arc(cr, 410.0, 145.0, 62.0, 0.0, 6.283185307179586);
+    cairo_fill(cr);
+
+    cairo_set_source_rgb(cr, 0.86, 0.18, 0.14);
+    cairo_set_line_width(cr, 8.0);
+    cairo_move_to(cr, 115.0, 285.0);
+    cairo_line_to(cr, 255.0, 245.0);
+    cairo_line_to(cr, 395.0, 305.0);
+    cairo_line_to(cr, 535.0, 235.0);
+    cairo_stroke(cr);
+
+    cairo_set_source_rgb(cr, 0.05, 0.07, 0.10);
+    cairo_select_font_face(cr, "Arial", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+    cairo_set_font_size(cr, 24.0);
+    cairo_move_to(cr, 90.0, 355.0);
+    cairo_show_text(cr, "Cairo render test");
+
+    cairo_status_t status = cairo_surface_write_to_png(surface, outputPath);
+
+    cairo_destroy(cr);
+    cairo_surface_destroy(surface);
+
+    if (status != CAIRO_STATUS_SUCCESS)
     {
-        core::logger::info("Failed to create SDK window");
+        std::cerr << "Failed to write PNG: " << cairo_status_to_string(status) << std::endl;
         return 1;
     }
-    window.show();
 
-    graphics::view view;
-    window.set_input_event_callback(forward_input_to_view, &view);
-    window.poll_events();
-
-    graphics::scene scene;
-
-    scene.add(std::make_unique<graphics::line_primitive>(
-        graphics::point{10.0f, 10.0f},
-        graphics::point{160.0f, 90.0f},
-        graphics::stroke_style{graphics::color::rgba(0.9f, 0.1f, 0.1f), 2.0f}));
-
-    scene.add(std::make_unique<graphics::rect_primitive>(
-        graphics::rect{30.0f, 40.0f, 120.0f, 80.0f},
-        graphics::fill_style{graphics::color::rgba(0.1f, 0.5f, 0.9f, 0.7f)},
-        graphics::stroke_style{graphics::color::rgba(0.0f, 0.0f, 0.0f), 1.5f}));
-
-    scene.add(std::make_unique<graphics::ellipse_primitive>(
-        graphics::point{220.0f, 100.0f},
-        graphics::size{48.0f, 28.0f},
-        graphics::fill_style{graphics::color::rgba(0.2f, 0.8f, 0.3f, 0.8f)},
-        graphics::stroke_style{graphics::color::rgba(0.0f, 0.2f, 0.1f), 2.0f}));
-
-    graphics::gdi_renderer renderer;
-    const graphics::render_target_desc target{
-        window.native_handle(),
-        window.width(),
-        window.height()};
-
-    if (!renderer.attach(target))
-    {
-        core::logger::info("Failed to attach render target");
-        return 1;
-    }
-
-    while (!window.should_close())
-    {
-        window.poll_events();
-
-        renderer.begin_frame();
-        renderer.render(scene);
-        renderer.end_frame();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(16));
-    }
-
+    std::cout << "Generated " << outputPath << std::endl;
     return 0;
 }
